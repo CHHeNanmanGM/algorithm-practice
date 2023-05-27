@@ -69,7 +69,7 @@ const search = (name)=> {
         if (!o.down)  {
             o.down = true
             if(o.name !== name) {
-                queue.push('')
+                // queue.push('')
                 queue.push(...o.neighbor)
             } else {
                 return true
@@ -78,4 +78,97 @@ const search = (name)=> {
     }
     return false
 }
-console.log(search('2'))
+// console.log(search('2'))
+
+// 找到最佳路径
+const graphObj = {
+    start: {
+        a: 1,
+        b: 2
+    },
+    a: {
+        c: 1, 
+        d: 3,
+    },
+    b: {
+        a: 1,
+        d: 1,
+        c: 1
+    },
+    d: {
+        fin: 3
+    },
+    c: {
+        fin: 1
+    },
+    fin: {}
+}
+
+const graphPath = {
+    start: ['a', 'b'],
+    a: ['c', 'd'],
+    b: ['c', 'd', 'a'],
+    c: ['fin'],
+    d: ['fin']
+}
+
+// 获取最佳路径 狄克斯特拉算法 
+/**
+ * 狄克斯特拉算法 是一种树算法，在广度优先算法上增加了
+ * 每条边上的权重，求得最佳得路径。
+ * 主要思想是在每次循环中，找出开销最小得节点，
+ * 并求出他的所有子节点的开销，并标记节点已经处理过，
+ * 然后再处理没有标记后得节点，让开销小于之前路径的开销，
+ * 那么就修改此节点得开销，并且修改路径，从而不断修正路径，
+ * 找到最小路径。
+ * 但此例没有考虑到负权边，如果需要考虑负权边需要使用贝尔曼-福德算法
+ */
+const getBestPath = (end = 'fin')=> {
+    const cost = { start: 0, a: 1000, b: 1000, c: 1000, d: 1000, fin: 1000 }
+    const parents = {}
+    const costedNode = new Set()
+    const findLowestCostNode = (i) => {
+        if (i=== 1) return 'start'
+        let min = 10000
+        let nodeName = ''
+        const keys = Object.keys(cost)
+        for(let i = 0; i <= keys.length; i++) {
+            const key = keys[i]
+            if(costedNode.has(key)) continue
+            if(cost[key]< min) {
+                min = cost[key]
+                nodeName = key
+            }
+        }
+        return nodeName
+    }
+    let nodeName = findLowestCostNode(1)
+    let nodeStarts = graphObj[nodeName]
+    while(nodeStarts !== graphObj.fin) {
+        const keys = Object.keys(nodeStarts)
+        keys.forEach(item => {
+            const curCost = cost[nodeName] + nodeStarts[item]
+            if (cost[item] > curCost) {
+                cost[item] = curCost
+                parents[item] = nodeName
+            }
+        })
+        costedNode.add(nodeName)
+        nodeName = findLowestCostNode()
+        nodeStarts = graphObj[nodeName]
+        console.log(nodeName)
+    }
+    // 处理parents获取最佳路径
+    const getPath = ()=> {
+        const pathNodes = ['fin']
+        let node = 'fin' 
+        while(node != 'start') {
+            node = parents[node]
+            pathNodes.unshift(node)
+        }
+        return pathNodes.join('-')
+    }
+    console.log(getPath())
+}
+getBestPath()
+
